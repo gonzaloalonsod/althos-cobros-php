@@ -1,0 +1,45 @@
+{
+    "name": "althosalud/cobros",
+    "description": "Typed PHP SDK for the AlthoCobros checkout API",
+    "type": "library",
+    "license": "proprietary",
+    "homepage": "https://github.com/gonzaloalonsod/althos-cobros-php",
+    "support": {
+        "issues": "https://github.com/gonzaloalonsod/althos-cobros-php/issues",
+        "source": "https://github.com/gonzaloalonsod/althos-cobros-php"
+    },
+    "require": {
+        "php": ">=8.2",
+        "ext-curl": "*",
+        "ext-hash": "*"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "phpstan/phpstan": "^2.0",
+        "phpunit/phpunit": "^11.0 || ^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "AlthoSalud\\Cobros\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "AlthoSalud\\Cobros\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "scripts": {
+        "cs": "php-cs-fixer fix --dry-run --diff",
+        "cs:fix": "php-cs-fixer fix",
+        "stan": "phpstan analyse",
+        "test": "phpunit",
+        "check": [
+            "@cs",
+            "@stan",
+            "@test"
+        ]
+    }
+}
