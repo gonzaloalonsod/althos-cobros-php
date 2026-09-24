@@ -70,6 +70,19 @@ final class CobrosClientTest extends TestCase
         self::assertSame($payload['lines'][0]['amount_cents'], json_decode((string) $transport->requests[0]['body'], true)['lines'][0]['amount_cents']);
     }
 
+    public function test_canonical_production_base_url_trailing_slash(): void
+    {
+        $transport = new MockHttpTransport([
+            new HttpResponse(200, json_encode([
+                'application' => ['id' => 1, 'slug' => 'app', 'status' => 'active'],
+                'api_key' => ['scopes' => ['checkouts:read']],
+            ], \JSON_THROW_ON_ERROR)),
+        ]);
+        $client = new CobrosClient(CobrosClient::DEFAULT_PRODUCTION_BASE_URL.'/', 'cb_key', $transport);
+        $client->me();
+        self::assertSame('https://cobros.althoapp.com/api/v1/me', $transport->requests[0]['url']);
+    }
+
     public function test_get_checkout(): void
     {
         $transport = new MockHttpTransport([

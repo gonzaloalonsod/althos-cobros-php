@@ -16,6 +16,8 @@ use AlthoSalud\Cobros\Http\CurlTransport;
 
 final readonly class CobrosClient implements CobrosClientInterface
 {
+    public const DEFAULT_PRODUCTION_BASE_URL = 'https://cobros.althoapp.com';
+
     public function __construct(
         private string $baseUrl,
         private ?string $apiKey = null,

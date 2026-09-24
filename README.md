@@ -1,12 +1,12 @@
 # AlthoCobros PHP SDK
 
-Cliente PHP tipado para la [AlthoCobros Checkout API](https://cobros.althosalud.com).
+Cliente PHP tipado para la [AlthoCobros Checkout API](https://cobros.althoapp.com).
 
 Sin dependencias de framework: **PHP 8.2+**, **ext-curl**, **ext-hash**.
 
 - Packagist: [althosalud/cobros](https://packagist.org/packages/althosalud/cobros)
 - Repo: [gonzaloalonsod/althos-cobros-php](https://github.com/gonzaloalonsod/althos-cobros-php)
-- Contrato HTTP: `https://cobros.althosalud.com/api/docs` (OpenAPI). Este SDK no calcula precios.
+- Contrato HTTP: `https://cobros.althoapp.com/api/docs` (OpenAPI). Este SDK no calcula precios.
 
 ## Instalación
 
@@ -21,7 +21,7 @@ use AlthoSalud\Cobros\CobrosClient;
 use AlthoSalud\Cobros\EntitlementSignature;
 
 $client = new CobrosClient(
-    baseUrl: 'https://cobros.althosalud.com',
+    baseUrl: CobrosClient::DEFAULT_PRODUCTION_BASE_URL,
     apiKey: 'cb_...',
 );
 
@@ -45,6 +45,8 @@ $checkout->initPoint;
 
 $paid = $client->getCheckout($checkout->id);
 ```
+
+`baseUrl` acepta con o sin barra final (`https://cobros.althoapp.com` y `https://cobros.althoapp.com/` son equivalentes).
 
 ### Webhook `entitlement.paid`
 
