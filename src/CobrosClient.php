@@ -19,6 +19,9 @@ final readonly class CobrosClient implements CobrosClientInterface
 {
     public const DEFAULT_BASE_URL = 'https://cobros.althoapp.com';
 
+    /** Alias kept for callers that adopted the canonical-URLs PR naming. */
+    public const DEFAULT_PRODUCTION_BASE_URL = self::DEFAULT_BASE_URL;
+
     public function __construct(
         private string $baseUrl,
         private ?string $apiKey = null,

@@ -61,6 +61,8 @@ $checkout->initPoint;
 $paid = $client->getCheckout($checkout->id);
 ```
 
+`baseUrl` acepta con o sin barra final (`https://cobros.althoapp.com` y `https://cobros.althoapp.com/` son equivalentes).
+
 ### Webhook `entitlement.paid`
 
 ```php
