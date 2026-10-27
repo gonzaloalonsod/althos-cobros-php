@@ -52,7 +52,6 @@ final readonly class ApplicationCredentials
         }
 
         $name = $application['name'] ?? null;
-        $rateLimit = $application['rate_limit_per_minute'] ?? null;
         $commissionBps = isset($application['commission_bps'])
             ? Scalar::int($application['commission_bps'], 'commission_bps')
             : 0;
@@ -67,7 +66,9 @@ final readonly class ApplicationCredentials
             status: self::string($application, 'status'),
             scopes: $scopes,
             name: \is_string($name) ? $name : null,
-            rateLimitPerMinute: \is_int($rateLimit) ? $rateLimit : null,
+            rateLimitPerMinute: \array_key_exists('rate_limit_per_minute', $application)
+                ? Scalar::optionalInt($application['rate_limit_per_minute'], 'rate_limit_per_minute')
+                : null,
             commissionBps: $commissionBps,
             commissionMode: $commissionMode,
             keyPrefix: $keyPrefix,

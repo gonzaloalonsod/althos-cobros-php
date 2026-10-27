@@ -23,7 +23,7 @@ use AlthoSalud\Cobros\Dto\CreateCheckoutRequest;
 use AlthoSalud\Cobros\EntitlementSignature;
 
 $client = new CobrosClient(
-    baseUrl: CobrosClient::DEFAULT_BASE_URL, // https://cobros.althoapp.com
+    baseUrl: CobrosClient::DEFAULT_BASE_URL, // https://cobros.althoapp.com (DEFAULT_PRODUCTION_BASE_URL is a deprecated alias)
     apiKey: 'cb_...',
 );
 

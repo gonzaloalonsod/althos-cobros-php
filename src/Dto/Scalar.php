@@ -20,4 +20,13 @@ final class Scalar
 
         throw InvalidResponseException::field($field, 'integer');
     }
+
+    public static function optionalInt(mixed $value, string $field): ?int
+    {
+        if (null === $value) {
+            return null;
+        }
+
+        return self::int($value, $field);
+    }
 }

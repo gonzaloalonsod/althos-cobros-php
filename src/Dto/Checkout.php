@@ -78,10 +78,15 @@ final readonly class Checkout
         $lines = [];
         $lineItems = [];
         if (\is_array($rawLines)) {
-            foreach ($rawLines as $line) {
-                if (\is_array($line)) {
-                    $lines[] = $line;
+            foreach ($rawLines as $index => $line) {
+                if (!\is_array($line)) {
+                    continue;
+                }
+                $lines[] = $line;
+                try {
                     $lineItems[] = CheckoutLine::fromArray($line);
+                } catch (InvalidResponseException $exception) {
+                    throw InvalidResponseException::message(\sprintf('lines[%s]: %s', (string) $index, $exception->getMessage()), $exception);
                 }
             }
         }

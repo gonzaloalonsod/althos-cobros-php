@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AlthoSalud\Cobros\Dto;
 
+use AlthoSalud\Cobros\Exception\InvalidResponseException;
+
 final readonly class CheckoutLine
 {
     public function __construct(
@@ -25,18 +27,19 @@ final readonly class CheckoutLine
      */
     public static function fromArray(array $payload): self
     {
-        $currency = $payload['currency'] ?? 'ARS';
+        $currency = $payload['currency'] ?? null;
         if (!\is_string($currency) || '' === $currency) {
-            $currency = 'ARS';
+            throw InvalidResponseException::field('currency', 'non-empty string');
+        }
+
+        $sku = $payload['sku'] ?? null;
+        if (!\is_string($sku) || '' === $sku) {
+            throw InvalidResponseException::field('sku', 'non-empty string');
         }
 
         $description = $payload['description'] ?? '';
-        $sku = $payload['sku'] ?? '';
         if (!\is_string($description)) {
-            $description = '';
-        }
-        if (!\is_string($sku)) {
-            $sku = '';
+            throw InvalidResponseException::field('description', 'string');
         }
 
         $periodStart = $payload['period_start'] ?? null;

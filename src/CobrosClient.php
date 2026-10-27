@@ -17,9 +17,14 @@ use AlthoSalud\Cobros\Http\CurlTransport;
 
 final readonly class CobrosClient implements CobrosClientInterface
 {
+    /**
+     * Canonical production Cobros API base URL (no trailing slash).
+     */
     public const DEFAULT_BASE_URL = 'https://cobros.althoapp.com';
 
-    /** Alias kept for callers that adopted the canonical-URLs PR naming. */
+    /**
+     * @deprecated since 1.1, use {@see DEFAULT_BASE_URL}. Kept as an alias for BC with the canonical-URLs PR.
+     */
     public const DEFAULT_PRODUCTION_BASE_URL = self::DEFAULT_BASE_URL;
 
     public function __construct(
@@ -50,13 +55,16 @@ final readonly class CobrosClient implements CobrosClientInterface
     public function createCheckout(array|CreateCheckoutRequest $payload, ?string $idempotencyKey = null): Checkout
     {
         if ($payload instanceof CreateCheckoutRequest) {
-            $idempotencyKey ??= $payload->idempotencyKey;
             $payload = $payload->toArray();
         }
 
+        $idempotencyKey = $this->resolveIdempotencyKey($payload, $idempotencyKey);
         $headers = [];
-        if (null !== $idempotencyKey && '' !== $idempotencyKey) {
+        if (null !== $idempotencyKey) {
+            $payload['idempotency_key'] = $idempotencyKey;
             $headers['Idempotency-Key'] = $idempotencyKey;
+        } else {
+            unset($payload['idempotency_key']);
         }
 
         return Checkout::fromArray($this->request('POST', '/api/v1/checkouts', $payload, $headers));
@@ -75,6 +83,33 @@ final readonly class CobrosClient implements CobrosClientInterface
     public function verifyEntitlementSignature(string $rawBody, string $signatureHeader, string $secret, ?string $idempotencyKey = null): EntitlementPaid
     {
         return EntitlementSignature::parse($rawBody, $signatureHeader, $secret, $idempotencyKey);
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function resolveIdempotencyKey(array $payload, ?string $methodKey): ?string
+    {
+        $methodKey = $this->normalizeIdempotencyKey($methodKey);
+        $bodyKey = isset($payload['idempotency_key']) && \is_string($payload['idempotency_key'])
+            ? $this->normalizeIdempotencyKey($payload['idempotency_key'])
+            : null;
+
+        if (null !== $methodKey && null !== $bodyKey && $methodKey !== $bodyKey) {
+            throw new \InvalidArgumentException('Conflicting idempotency keys: method argument and payload idempotency_key differ.');
+        }
+
+        return $methodKey ?? $bodyKey;
+    }
+
+    private function normalizeIdempotencyKey(?string $key): ?string
+    {
+        if (null === $key) {
+            return null;
+        }
+        $key = trim($key);
+
+        return '' === $key ? null : $key;
     }
 
     /**
