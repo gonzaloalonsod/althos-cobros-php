@@ -21,6 +21,12 @@ final readonly class EntitlementPaid
         public ?string $paymentId,
         public ?string $entitlementRef,
         public ?string $idempotencyKey,
+        public ?int $checkoutSubtotalAmountCents = null,
+        public ?int $checkoutCommissionBps = null,
+        public ?string $checkoutCommissionMode = null,
+        public ?int $checkoutCommissionAmountCents = null,
+        public ?int $checkoutTotalAmountCents = null,
+        public ?int $checkoutNetAmountCents = null,
     ) {
     }
 
@@ -56,6 +62,7 @@ final readonly class EntitlementPaid
         $customer = $payload['customer_external_id'] ?? null;
         $paymentId = $payload['payment_id'] ?? null;
         $ref = $payload['entitlement_ref'] ?? null;
+        $mode = $payload['checkout_commission_mode'] ?? null;
 
         return new self(
             event: $event,
@@ -70,6 +77,22 @@ final readonly class EntitlementPaid
             paymentId: \is_string($paymentId) ? $paymentId : null,
             entitlementRef: \is_string($ref) ? $ref : null,
             idempotencyKey: $idempotencyKey,
+            checkoutSubtotalAmountCents: isset($payload['checkout_subtotal_amount_cents'])
+                ? Scalar::int($payload['checkout_subtotal_amount_cents'], 'checkout_subtotal_amount_cents')
+                : null,
+            checkoutCommissionBps: isset($payload['checkout_commission_bps'])
+                ? Scalar::int($payload['checkout_commission_bps'], 'checkout_commission_bps')
+                : null,
+            checkoutCommissionMode: \is_string($mode) ? $mode : null,
+            checkoutCommissionAmountCents: isset($payload['checkout_commission_amount_cents'])
+                ? Scalar::int($payload['checkout_commission_amount_cents'], 'checkout_commission_amount_cents')
+                : null,
+            checkoutTotalAmountCents: isset($payload['checkout_total_amount_cents'])
+                ? Scalar::int($payload['checkout_total_amount_cents'], 'checkout_total_amount_cents')
+                : null,
+            checkoutNetAmountCents: isset($payload['checkout_net_amount_cents'])
+                ? Scalar::int($payload['checkout_net_amount_cents'], 'checkout_net_amount_cents')
+                : null,
         );
     }
 }

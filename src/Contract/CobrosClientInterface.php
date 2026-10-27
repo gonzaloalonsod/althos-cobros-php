@@ -6,6 +6,7 @@ namespace AlthoSalud\Cobros\Contract;
 
 use AlthoSalud\Cobros\Dto\ApplicationCredentials;
 use AlthoSalud\Cobros\Dto\Checkout;
+use AlthoSalud\Cobros\Dto\CreateCheckoutRequest;
 use AlthoSalud\Cobros\Dto\EntitlementPaid;
 
 interface CobrosClientInterface
@@ -17,9 +18,9 @@ interface CobrosClientInterface
     public function me(): ApplicationCredentials;
 
     /**
-     * @param array<string, mixed> $payload
+     * @param array<string, mixed>|CreateCheckoutRequest $payload
      */
-    public function createCheckout(array $payload, ?string $idempotencyKey = null): Checkout;
+    public function createCheckout(array|CreateCheckoutRequest $payload, ?string $idempotencyKey = null): Checkout;
 
     public function getCheckout(string $id): Checkout;
 

@@ -8,6 +8,7 @@ use AlthoSalud\Cobros\Contract\CobrosClientInterface;
 use AlthoSalud\Cobros\Contract\HttpTransportInterface;
 use AlthoSalud\Cobros\Dto\ApplicationCredentials;
 use AlthoSalud\Cobros\Dto\Checkout;
+use AlthoSalud\Cobros\Dto\CreateCheckoutRequest;
 use AlthoSalud\Cobros\Dto\EntitlementPaid;
 use AlthoSalud\Cobros\Exception\ApiException;
 use AlthoSalud\Cobros\Exception\ConfigurationException;
@@ -16,6 +17,8 @@ use AlthoSalud\Cobros\Http\CurlTransport;
 
 final readonly class CobrosClient implements CobrosClientInterface
 {
+    public const DEFAULT_BASE_URL = 'https://cobros.althoapp.com';
+
     public function __construct(
         private string $baseUrl,
         private ?string $apiKey = null,
@@ -39,10 +42,15 @@ final readonly class CobrosClient implements CobrosClientInterface
     }
 
     /**
-     * @param array<string, mixed> $payload
+     * @param array<string, mixed>|CreateCheckoutRequest $payload
      */
-    public function createCheckout(array $payload, ?string $idempotencyKey = null): Checkout
+    public function createCheckout(array|CreateCheckoutRequest $payload, ?string $idempotencyKey = null): Checkout
     {
+        if ($payload instanceof CreateCheckoutRequest) {
+            $idempotencyKey ??= $payload->idempotencyKey;
+            $payload = $payload->toArray();
+        }
+
         $headers = [];
         if (null !== $idempotencyKey && '' !== $idempotencyKey) {
             $headers['Idempotency-Key'] = $idempotencyKey;
@@ -108,7 +116,7 @@ final readonly class CobrosClient implements CobrosClientInterface
                 ? $payload['message']
                 : 'Cobros returned HTTP '.$response->statusCode.'.';
 
-            throw new ApiException($response->statusCode, $errorCode, $message, $payload);
+            throw new ApiException($response->statusCode, $errorCode, $message, $payload, $response->headers);
         }
 
         return $payload;

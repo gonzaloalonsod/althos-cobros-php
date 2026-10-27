@@ -65,9 +65,92 @@ final class CobrosClientTest extends TestCase
         $checkout = $client->createCheckout($payload, 'idem-1');
         self::assertSame('chk-1', $checkout->id);
         self::assertSame(15000, $checkout->totalAmountCents);
+        self::assertSame(15000, $checkout->subtotalAmountCents);
         self::assertSame('https://pay.example/1', $checkout->initPoint);
         self::assertSame('idem-1', $transport->requests[0]['headers']['Idempotency-Key']);
         self::assertSame($payload['lines'][0]['amount_cents'], json_decode((string) $transport->requests[0]['body'], true)['lines'][0]['amount_cents']);
+    }
+
+    public function test_create_checkout_accepts_typed_request(): void
+    {
+        $transport = new MockHttpTransport([
+            new HttpResponse(201, json_encode([
+                'id' => 'chk-2',
+                'status' => 'pending',
+                'currency' => 'ARS',
+                'subtotal_amount_cents' => 100000,
+                'commission_bps' => 100,
+                'commission_mode' => 'surcharge',
+                'commission_amount_cents' => 1000,
+                'total_amount_cents' => 101000,
+                'net_amount_cents' => 100000,
+                'init_point' => 'https://pay.example/2',
+                'lines' => [[
+                    'id' => 1,
+                    'amount_cents' => 100000,
+                    'currency' => 'ARS',
+                    'description' => 'Plan',
+                    'sku' => 'plan',
+                ]],
+            ], \JSON_THROW_ON_ERROR)),
+        ]);
+        $client = new CobrosClient('https://cobros.example', 'cb_key', $transport);
+        $checkout = $client->createCheckout(new \AlthoSalud\Cobros\Dto\CreateCheckoutRequest(
+            lines: [new \AlthoSalud\Cobros\Dto\CheckoutLineRequest(
+                amountCents: 100000,
+                currency: 'ARS',
+                description: 'Plan',
+                sku: 'plan',
+                periodStart: '2026-08-01',
+                periodEnd: '2026-08-31',
+                entitlementRef: 'ref',
+            )],
+            customerExternalId: 'org-1',
+            idempotencyKey: 'idem-2',
+        ));
+        self::assertSame('chk-2', $checkout->id);
+        self::assertSame(1000, $checkout->commissionAmountCents);
+        self::assertSame(101000, $checkout->totalAmountCents);
+        self::assertSame('surcharge', $checkout->commissionMode);
+        self::assertCount(1, $checkout->lineItems);
+        self::assertSame('idem-2', $transport->requests[0]['headers']['Idempotency-Key']);
+    }
+
+    public function test_default_base_url_constant(): void
+    {
+        self::assertSame('https://cobros.althoapp.com', CobrosClient::DEFAULT_BASE_URL);
+    }
+
+    public function test_http_response_exposes_headers(): void
+    {
+        $response = new HttpResponse(429, '{}', [
+            'retry-after' => ['15'],
+            'x-request-id' => ['req-123'],
+        ]);
+        self::assertSame('15', $response->header('Retry-After'));
+        self::assertSame('req-123', $response->header('X-Request-Id'));
+    }
+
+    public function test_api_exception_exposes_response_headers(): void
+    {
+        $transport = new MockHttpTransport([
+            new HttpResponse(429, json_encode([
+                'error' => 'rate_limit_exceeded',
+                'message' => 'Too many requests',
+            ], \JSON_THROW_ON_ERROR), [
+                'retry-after' => ['15'],
+                'x-request-id' => ['req-123'],
+            ]),
+        ]);
+        $client = new CobrosClient('https://cobros.example', 'cb_key', $transport);
+        try {
+            $client->me();
+            self::fail('Expected ApiException');
+        } catch (\AlthoSalud\Cobros\Exception\ApiException $exception) {
+            self::assertSame(429, $exception->statusCode);
+            self::assertSame('15', $exception->responseHeader('Retry-After'));
+            self::assertSame('req-123', $exception->responseHeader('X-Request-Id'));
+        }
     }
 
     public function test_get_checkout(): void
